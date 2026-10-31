@@ -56,7 +56,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private DcMotorEx launcher = null;
+    private DcMotorEx shooter = null;
     private DcMotor intake = null;
     private CRServo leftIntakeServo = null;
     private CRServo rightIntakeServo = null;
@@ -101,15 +101,15 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * to 'get' must correspond to the names assigned during the robot configuration
          * step.
          */
-        leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        leftFrontDrive = hardwareMap.get(DcMotor.class, Constants.leftFront());
+        rightFrontDrive = hardwareMap.get(DcMotor.class, Constants.rightFront());
+        leftBackDrive = hardwareMap.get(DcMotor.class, Constants.leftRear());
+        rightBackDrive = hardwareMap.get(DcMotor.class, Constants.rightRear());
         intake = hardwareMap.get(DcMotor.class, "intake");
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooterMotor");
         windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
-        leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
-        rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
+        leftIntakeServo = hardwareMap.get(CRServo.class, "leftIntakeServo");
+//        rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -142,9 +142,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * through any wiring.
          */
 
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
 
         /*
          * set Feeders to an initial value to initialize the servo controller
@@ -275,9 +275,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Otherwise, we start spinning the launcher down.
          */
         if (gamepad1.right_bumper) {
-            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+            shooter.setVelocity(LAUNCHER_TARGET_VELOCITY);
         } else {
-            launcher.setVelocity(0);
+            shooter.setVelocity(0);
         }
 
         /*
@@ -287,7 +287,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * add some power to the intake power. This can sometimes help dislodge stuck elements from
          * inside the hopper.
          */
-        if (gamepad1.right_bumper && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
+        if (gamepad1.right_bumper && shooter.getVelocity() > LAUNCHER_MIN_VELOCITY) {
             windmillServo.setPower(1);
             intakePower += 0.5;
         } else {

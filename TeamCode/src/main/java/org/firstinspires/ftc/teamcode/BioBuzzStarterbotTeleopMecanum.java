@@ -73,8 +73,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      * in the launch() function to only run the windmill servo when the motor is spinning fast
      * enough to make a successful throw.
      */
-    public final int LAUNCHER_TARGET_VELOCITY = 200; //2678 RPM
-    public final int LAUNCHER_MIN_VELOCITY = 100; //2571 RPM
+    public final int LAUNCHER_TARGET_VELOCITY = 1220; //2678 RPM
+    public final int LAUNCHER_MIN_VELOCITY = 500; //2571 RPM
 
 
     /*
@@ -144,7 +144,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(.5, 0.05, 0.05, 12.5));
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(362
+                , 0.05, 0.05, 12.5));
 
         /*
          * set Feeders to an initial value to initialize the servo controller
@@ -243,6 +244,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         telemetry.addData("ShooterPower: ", shooter.getPower());
         telemetry.addData("Shooter velocity", shooter.getVelocity());
         telemetry.addData("CSR SERVO CLASS", windmillServo.getClass());
+        telemetry.addData("RightIntakePower", rightIntakeServo.getPower());
     }
 
     /*
@@ -299,7 +301,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         }
 
         if (gamepad2.dpad_down){
-            intakePower *= -1;
+            rightIntakeServo.setPower(1);
+        } else {
+            rightIntakeServo.setPower(0);
         }
 
         if (gamepad2.rightTriggerWasPressed()) {
@@ -307,7 +311,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             windmillServo.setPower(1);
         }
 
-        if (gamepad1.dpad_right || gamepad1.right_bumper) {
+        if (gamepad2.dpad_right || gamepad1.right_bumper) {
             windmillServo.setPower(1);
         }
         else {
@@ -325,6 +329,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 //        if (gamepad2.right_bumper){
             windmillServo.setPower(1);
             intakePower = Math.min(1, intakePower + 0.5);
+            rightIntakeServo.setPower(1);
 
         } else {
             windmillServo.setPower(0);

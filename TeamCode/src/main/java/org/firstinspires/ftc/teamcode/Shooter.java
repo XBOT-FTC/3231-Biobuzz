@@ -18,7 +18,8 @@ public class Shooter {
             () -> {
                 double current = motor.getVelocity();
                 double error = current - velocity;
-                double power = 0.5 * error + 0.05 * (error - previous);
+                double errorDelta = error - previous;
+                double power = 0.5 * error + 0.05 * errorDelta;
 
                 motor.setPower(power);
                 previous = error;

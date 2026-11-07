@@ -22,12 +22,25 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
     public static final String shooterMotor = "shooterMotor";
 
+    public static String leftFront() {
+        return "frontLeftMotor";
+    }
+    public static String leftRear() {
+        return "backLeftMotor";
+    }
+    public static String rightFront() {
+        return "frontRightMotor";
+    }
+    public static String rightRear() {
+        return "backRightMotor";
+    }
+
     public static MecanumConfig driveConfig = new MecanumConfig(
             c -> {
-                c.frontLeftName.set("left_front");
-                c.backLeftName.set("left_back");
-                c.frontRightName.set("right_front");
-                c.backRightName.set("right_back");
+                c.frontLeftName.set(leftFront());
+                c.backLeftName.set(leftRear());
+                c.frontRightName.set(rightFront());
+                c.backRightName.set(rightRear());
 
                 c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
                 c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
@@ -78,20 +91,6 @@ public class Constants {
                 new Foresight(foresightConfig)
         );
     }
-
-    public static String leftFront(){
-        return "leftFrontMotor";
-    }
-    public static String leftRear(){
-        return "leftRearMotor";
-    }
-    public static String rightFront() {
-        return "rightFrontMotor";
-    }
-    public static String rightRear() {
-        return "rightRearMotor";
-    }
-
 
     public static Follower createFollower(HardwareMap h, Drivetrain drivetrain, Localizer localizer, Foresight foresight) {
         // return new Follower(Drivetrain, Localizer, Foresight);

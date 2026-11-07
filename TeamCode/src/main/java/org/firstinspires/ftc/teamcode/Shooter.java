@@ -7,21 +7,21 @@ import static com.pedropathing.ivy.commands.Commands.*;
 
 public class Shooter {
     private DcMotorEx motor;
-    double error;
+    double previous = 0;
 
     public Shooter(HardwareMap hw) {
         motor = hw.get(DcMotorEx.class, Constants.shooterMotor);
     }
 
     public Command maintain(double velocity) {
-        error = 0;
         return infinite(
             () -> {
                 double current = motor.getVelocity();
-                double power = 0.5 * error + 0.05 * (current - error);
+                double error = current - velocity;
+                double power = 0.5 * error + 0.05 * (error - previous);
 
                 motor.setPower(power);
-                error = current;
+                previous = error;
             }
         ).requiring(motor);
     }

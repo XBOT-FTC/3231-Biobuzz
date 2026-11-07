@@ -16,16 +16,19 @@ import org.firstinspires.ftc.teamcode.TeamDriveTrain;
 
 @TeleOp(name = "2026TeleOp_2939", group="OpMode")
 public class MecanumTeleOp_2939 extends OpMode {
-    private Localizer localizer;
-    private Foresight foresight;
     private TeamDriveTrain drive;
+    private Shooter shooterSystem;
     private Follower follower;
 
-    private final Gamepad driverGamepad = new Gamepad();
-    private final Gamepad opGamepad = new Gamepad();
+    private Gamepad driverGamepad;
+    private Gamepad opGamepad;
 
     public void init() {
-        follower = Constants.createFollower(hardwareMap,drive,localizer,foresight);
+        driverGamepad = gamepad1;
+        opGamepad = gamepad2;
+
+        drive = new TeamDriveTrain(hardwareMap);
+        shooterSystem = new Shooter(hardwareMap);
     }
 
     @Override
@@ -39,10 +42,14 @@ public class MecanumTeleOp_2939 extends OpMode {
 
         ManualDrive.driveOrHold(follower, powers);
         follower.update();
-        Pose robotPose = follower.pose();
+
+        //Pose robotPose = follower.pose();
 
         if (opGamepad.rightTriggerWasPressed()) {
-            // Command here
+            shooterSystem.turnOn().execute();
+        }
+        else {
+            shooterSystem.turnOff().execute();
         }
 
     }

@@ -20,6 +20,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
+    public static final String shooterMotor = "shooterMotor";
+
     public static MecanumConfig driveConfig = new MecanumConfig(
             c -> {
                 c.frontLeftName.set("left_front");

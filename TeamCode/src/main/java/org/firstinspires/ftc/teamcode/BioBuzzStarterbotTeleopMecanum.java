@@ -62,6 +62,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private CRServo rightIntakeServo;
     private CRServo windmillServo;
 
+    public double pVal = 36.2;
+    public double fVal = 12.5;
+
 
     /*
      * These two variables are used to control the velocity of the launcher motor.
@@ -73,8 +76,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      * in the launch() function to only run the windmill servo when the motor is spinning fast
      * enough to make a successful throw.
      */
-    public final int LAUNCHER_TARGET_VELOCITY = 1220; //2678 RPM
-    public final int LAUNCHER_MIN_VELOCITY = 500; //2571 RPM
+    public int LAUNCHER_TARGET_VELOCITY = 1310; //2678 RPM
+    public final int LAUNCHER_MIN_VELOCITY = 1300; //2571 RPM
 
 
     /*
@@ -144,8 +147,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(362
-                , 0.05, 0.05, 12.5));
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(pVal
+                , 0, 0, 12.5));
 
         /*
          * set Feeders to an initial value to initialize the servo controller
@@ -159,6 +162,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Much like our drivetrain motors, we set the right intake servo to reverse so that both
          * servos work to pull elements into the intake.
          */
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
         rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
         windmillServo.setDirection(DcMotorSimple.Direction.FORWARD);
 
@@ -245,6 +249,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         telemetry.addData("Shooter velocity", shooter.getVelocity());
         telemetry.addData("CSR SERVO CLASS", windmillServo.getClass());
         telemetry.addData("RightIntakePower", rightIntakeServo.getPower());
+        telemetry.addData("ShooterTargetPostionTolerance: ", shooter.getTargetPositionTolerance());
+        telemetry.addData("Target Velocity", LAUNCHER_TARGET_VELOCITY);
+        telemetry.addData("Actual Velocity", shooter.getVelocity());
+        telemetry.addData("Velocity Error", LAUNCHER_TARGET_VELOCITY - shooter.getVelocity());
+        telemetry.addData("P", pVal);
+        telemetry.addData("F", fVal);
     }
 
     /*
@@ -300,22 +310,37 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             shooter.setVelocity(0);
         }
 
-        if (gamepad2.dpad_down){
+        if (gamepad2.dpad_right){
             rightIntakeServo.setPower(1);
         } else {
             rightIntakeServo.setPower(0);
         }
 
-        if (gamepad2.rightTriggerWasPressed()) {
-            shooter.setPower(1);
-            windmillServo.setPower(1);
+        if (gamepad2.dpad_up){
+            LAUNCHER_TARGET_VELOCITY += 5;
+        }
+        else if (gamepad2.dpad_down) {
+            LAUNCHER_TARGET_VELOCITY -= 5 ;
         }
 
-        if (gamepad2.dpad_right || gamepad1.right_bumper) {
-            windmillServo.setPower(1);
+        if (gamepad1.y) {
+            pVal += 1;
+        } else if (gamepad1.x) {
+            pVal -= 1;
         }
-        else {
-            windmillServo.setPower(0);
+
+        if (gamepad1.b) {
+            fVal += 1;
+        } else if (gamepad1.a) {
+            fVal -= 1;
+        }
+
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+                new PIDFCoefficients(pVal, 0, 0, fVal));
+
+        if (gamepad2.rightTriggerWasPressed()) {
+//            shooter.setPower(1);
+            windmillServo.setPower(1);
         }
 
         /*
@@ -325,12 +350,17 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * add some power to the intake power. This can sometimes help dislodge stuck elements from
          * inside the hopper.
          */
-        if (gamepad2.right_bumper && shooter.getVelocity() > LAUNCHER_MIN_VELOCITY) {
-//        if (gamepad2.right_bumper){
-            windmillServo.setPower(1);
-            intakePower = Math.min(1, intakePower + 0.5);
-            rightIntakeServo.setPower(1);
 
+        double actualVelocity = shooter.getVelocity();
+
+        double velocityError = Math.abs(
+                LAUNCHER_TARGET_VELOCITY - actualVelocity
+        );
+
+        boolean shooterReady = velocityError <= 30;
+
+        if (gamepad2.right_bumper && shooterReady) {
+            windmillServo.setPower(1.0);
         } else {
             windmillServo.setPower(0);
         }

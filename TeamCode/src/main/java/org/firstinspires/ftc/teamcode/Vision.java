@@ -41,6 +41,7 @@ public class Vision extends LinearOpMode {
         waitForStart();
 
 
+
         while (!isStopRequested() && opModeIsActive()){
             if (!tagProcessor.getDetections().isEmpty()){
                 AprilTagDetection tag = tagProcessor.getDetections().get(0);

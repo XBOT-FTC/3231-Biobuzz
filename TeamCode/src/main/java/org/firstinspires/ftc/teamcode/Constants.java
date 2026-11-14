@@ -22,10 +22,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
     public static MecanumConfig driveConfig = new MecanumConfig(
             c -> {
-                c.frontLeftName.set("left_front");
-                c.backLeftName.set("left_back");
-                c.frontRightName.set("right_front");
-                c.backRightName.set("right_back");
+                c.frontLeftName.set(Constants.leftFront());
+                c.backLeftName.set(Constants.leftRear());
+                c.frontRightName.set(Constants.rightFront());
+                c.backRightName.set(Constants.rightRear());
 
                 c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
                 c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
@@ -78,16 +78,16 @@ public class Constants {
     }
 
     public static String leftFront(){
-        return "leftFrontMotor";
+        return "frontLeftMotor";
     }
     public static String leftRear(){
-        return "leftRearMotor";
+        return "backLeftMotor";
     }
     public static String rightFront() {
-        return "rightFrontMotor";
+        return "frontRightMotor";
     }
     public static String rightRear() {
-        return "rightRearMotor";
+        return "backRightMotor";
     }
 
 

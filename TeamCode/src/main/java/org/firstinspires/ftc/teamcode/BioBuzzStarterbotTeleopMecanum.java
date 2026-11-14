@@ -117,15 +117,15 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     @Override
     public void init() {
-
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-                .setCameraResolution(new Size(640, 480))
-                .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
-                .addProcessor(tagProcessor)
-                .enableLiveView(true)
-                .setAutoStartStreamOnBuild(true)
-                .build();
+//
+//        visionPortal = new VisionPortal.Builder()
+//                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+//                .setCameraResolution(new Size(640, 480))
+//                .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+//                .addProcessor(tagProcessor)
+//                .enableLiveView(true)
+//                .setAutoStartStreamOnBuild(true)
+//                .build();
 //
 //        tagProcessor = AprilTagProcessor.easyCreateWithDefaults();
 
@@ -290,7 +290,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          *
          */
 
-        for (AprilTagDetection tag : tagProcessor.getDetections()) {
+        for (AprilTagDetection tag : myAprilTagProcessor.getDetections()) {
             telemetry.addData("Tag ID", tag.id);
 
             telemetry.addData("X", tag.ftcPose.x);
@@ -302,10 +302,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         }
 
         telemetry.update();
-
-
-        System.out.println(shooter.getVelocity());
-        System.out.println(shooter.getPower());
 
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Triggers", "left (%.2f, right (%.2f)", gamepad1.left_trigger, gamepad1.right_trigger);
@@ -319,6 +315,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         telemetry.addData("Velocity Error", LAUNCHER_TARGET_VELOCITY - shooter.getVelocity());
         telemetry.addData("P", pVal);
         telemetry.addData("F", fVal);
+        telemetry.addData("Intake: ", intakePower);
 
     }
 
@@ -403,17 +400,27 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             windmillServo.setPower(1);
         }
 
-        if (gamepad1.rightTriggerWasPressed()) {
-            intakePower = 1;
-        } else if (gamepad1.leftTriggerWasPressed()) {
+//        if (gamepad1.rightTriggerWasPressed()) {
+//            intakePower = .35;
+//        } else if (gamepad1.leftTriggerWasPressed()) {
+//            intakePower = -.35;
+//        }
+
+        if (gamepad1.right_trigger > .1) {
+            intakePower = .65;
+        } else if (gamepad1.left_trigger > .1){
             intakePower = -1;
+        } else {
+            intakePower = 0;
         }
 
         if (gamepad1.b){
-            intakePower += .1;
+            intakePower += .05;
         } else if (gamepad1.a) {
-            intakePower -= .1;
+            intakePower -= .05;
         }
+
+        intakePower = Math.max(-1.0, Math.min(1.0, intakePower));
 
 
 

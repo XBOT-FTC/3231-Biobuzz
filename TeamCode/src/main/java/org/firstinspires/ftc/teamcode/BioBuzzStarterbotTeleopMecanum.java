@@ -26,6 +26,8 @@ import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import android.util.Size;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -82,6 +84,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     AprilTagLibrary myAprilTagLibrary;
     AprilTagProcessor myAprilTagProcessor;
 
+    Follower follower;
+
 
     /*
      * These two variables are used to control the velocity of the launcher motor.
@@ -117,6 +121,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     @Override
     public void init() {
+        follower = Constants.create(hardwareMap);
 //
 //        visionPortal = new VisionPortal.Builder()
 //                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
@@ -303,6 +308,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         telemetry.update();
 
+        follower.update();
+        Pose pose = follower.pose();
+
+        telemetry.addData("x", pose.x());
+        telemetry.addData("y", pose.y());
+
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Triggers", "left (%.2f, right (%.2f)", gamepad1.left_trigger, gamepad1.right_trigger);
         telemetry.addData("Windmill: ", windmillServo.getPower());
@@ -368,14 +379,14 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             shooter.setVelocity(-500);
             windmillServo.setPower(0);
 
-        } else if (gamepad1.x || gamepad1.right_bumper) {
+        } else if (gamepad1.xWasPressed()|| gamepad1.right_bumper) {
             shooter.setVelocity(LAUNCHER_TARGET_VELOCITY);
 
         } else {
             shooter.setVelocity(0);
         }
 
-        if (gamepad1.dpad_up) {
+        if (gamepad1.dpadDownWasPressed()) {
             LAUNCHER_TARGET_VELOCITY += 5;
         } else if (gamepad1.dpad_down) {
             LAUNCHER_TARGET_VELOCITY -= 5;
@@ -396,9 +407,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
                 new PIDFCoefficients(pVal, 0, 0, fVal));
 
-        if (gamepad1.rightTriggerWasPressed() || gamepad1.y) {
-            windmillServo.setPower(1);
-        }
+
 
 //        if (gamepad1.rightTriggerWasPressed()) {
 //            intakePower = .35;
@@ -414,9 +423,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             intakePower = 0;
         }
 
-        if (gamepad1.b){
+        if (gamepad1.bWasPressed()){
             intakePower += .05;
-        } else if (gamepad1.a) {
+        } else if (gamepad1.aWasPressed()) {
             intakePower -= .05;
         }
 
@@ -440,7 +449,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         boolean shooterReady = velocityError <= 30;
 
-        if (gamepad1.right_bumper && shooterReady) {
+        if ((gamepad1.right_bumper && shooterReady) || gamepad1.y) {
             windmillServo.setPower(1.0);
         } else {
             windmillServo.setPower(0);

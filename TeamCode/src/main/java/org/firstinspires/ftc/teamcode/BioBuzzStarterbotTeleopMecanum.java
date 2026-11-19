@@ -38,10 +38,11 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
-import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 
 
 /*
@@ -79,9 +80,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     public double pVal = 36.2;
     public double fVal = 12.5;
 
-    AprilTagLibrary.Builder myAprilTagLibraryBuilder;
-    AprilTagProcessor.Builder myAprilTagProcessorBuilder;
-    AprilTagLibrary myAprilTagLibrary;
     AprilTagProcessor myAprilTagProcessor;
 
     Follower follower;
@@ -134,26 +132,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 //
 //        tagProcessor = AprilTagProcessor.easyCreateWithDefaults();
 
-        myAprilTagLibraryBuilder = new AprilTagLibrary.Builder();
-//
-//// Add all the tags and all the clusters from the given AprilTagLibrary
-//// to the AprilTagLibrary.Builder. Use addLibrary(), not addTags().
-//// addTags() copies the single tags only and drops the clusters.
-//// Get the AprilTagLibrary for the current season.
-
-        myAprilTagLibraryBuilder.addTags(AprilTagGameDatabase.getCurrentGameTagLibrary());
-//
-//// Build the AprilTag library and assign it to a variable.
-        myAprilTagLibrary = myAprilTagLibraryBuilder.build();
-//
-//// Create a new AprilTagProcessor.Builder object and assign it to a variable.
-        myAprilTagProcessorBuilder = new AprilTagProcessor.Builder();
-//
-//// Set the tag library.
-        myAprilTagProcessorBuilder.setTagLibrary(myAprilTagLibrary);
-//
-//// Build the AprilTag processor and assign it to a variable.
-        myAprilTagProcessor = myAprilTagProcessorBuilder.build();
+        myAprilTagProcessor = new AprilTagProcessor.Builder()
+                .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
+                .build();
 
         /*
          * Initialize the hardware variables. Note that the strings used here as parameters
@@ -296,8 +277,16 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          */
 
         for (AprilTagDetection tag : myAprilTagProcessor.getDetections()) {
-            telemetry.addData("Tag ID", tag.id);
+            if (tag instanceof AprilTagSingleDetection) {
+                telemetry.addData("Tag ID", ((AprilTagSingleDetection) tag).id);
+            } else if (tag instanceof AprilTagClusterDetection) {
+                telemetry.addData("Tag Cluster", ((AprilTagClusterDetection) tag).metadata.name);
+            }
 
+            if (tag.ftcPose == null) {
+                telemetry.addLine("AprilTag pose unavailable");
+                continue;
+            }
             telemetry.addData("X", tag.ftcPose.x);
             telemetry.addData("Y", tag.ftcPose.y);
             telemetry.addData("Range", tag.ftcPose.range);

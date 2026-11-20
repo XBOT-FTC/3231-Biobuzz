@@ -38,8 +38,8 @@ public class Constants {
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
         c.name.set("pinpoint");
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
-        c.xPodOffset.set(-7.480483768493172);
-        c.yPodOffset.set(-7.654116773229885);
+        c.xPodOffset.set(-4.966535793514702);
+        c.yPodOffset.set(-6.944346991110975);
         c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
         c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
         c.globalDistanceUnit.set(DistanceUnit.INCH);
@@ -48,21 +48,6 @@ public class Constants {
 
     public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
-                c.forwardTranslational.set(Controller.proportional(0.0));
-                c.strafeTranslational.set(Controller.proportional(0.0));
-
-                c.maxAchievableForwardVelocity.set(5.0);
-                c.maxAchievableStrafeVelocity.set(5.0);
-                c.naturalForwardDeceleration.set(1.0);
-                c.naturalStrafeDeceleration.set(1.0);
-
-                // tune coefficient and kP later
-                c.headingBrakeCoefficients.set(Vector2D.cartesian(0.0, 0.0));
-
-                c.headingFeedback.set(Controller.proportional(0.0));
-
-                c.coast.set(Controller.proportionalFeedforward(0.0));
-                c.brake.set(Controller.proportionalFeedforward(0.0));
             }
     );
 

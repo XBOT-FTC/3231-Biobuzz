@@ -7,6 +7,7 @@ import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
 
 import com.pedropathing.localization.Localizer;
+import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector2D;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
@@ -37,9 +38,9 @@ public class Constants {
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
         c.name.set("pinpoint");
-        c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
-        c.xPodOffset.set(-4.966535793514702);
-        c.yPodOffset.set(-6.944346991110975);
+        c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        c.xPodOffset.set(-3.1536603912593812);
+        c.yPodOffset.set(-3.9543314055195005);
         c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
         c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
         c.globalDistanceUnit.set(DistanceUnit.INCH);
@@ -48,6 +49,27 @@ public class Constants {
 
     public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
+                Controller primaryTranslationalForward = Controller.proportional(0.3302734930083007);
+                Controller secondaryTranslationalForward = Controller.proportional(0.12202723059630029);
+                Controller primaryTranslationalLateral = Controller.proportional(2.721048948790103);
+                Controller secondaryTranslationalLateral = Controller.proportional(1.0053548788109534);
+
+                c.forwardTranslational.set(Controller.piecewise(secondaryTranslationalForward).put(2.5, primaryTranslationalForward));
+                c.strafeTranslational.set(Controller.piecewise(secondaryTranslationalLateral).put(2.5, primaryTranslationalLateral));
+
+                c.coast.set(Controller.proportionalFeedforward(0.02708515020877627));
+                c.brake.set(Controller.proportionalFeedforward(0.023022377677459828));
+
+                c.headingFeedback.set(Controller.proportional(3.5511303262440097));
+                c.headingBrakeCoefficients.set(Vector2D.cartesian(0.04731003932347212, 0.005686034478715731));
+
+                c.linearBrakeCoefficients.set(Matrix.diag(0.06693390719114989, 0.07410753614376389));
+                c.quadraticBrakeCoefficients.set(Matrix.diag(0.002294798587098989, 0.00191725406948465));
+
+                c.maxAchievableForwardVelocity.set(39.560273725837405);
+                c.maxAchievableStrafeVelocity.set(29.334466201232978);
+                c.naturalForwardDeceleration.set(25.894928433858162);
+                c.naturalStrafeDeceleration.set(47.14723081935718);
             }
     );
 
@@ -78,28 +100,28 @@ public class Constants {
         return new Follower(localizer,drivetrain,foresight);
     }
 
-    public static double inPerTick2939 = 0.02393;
-    public static double lateralInPerTick2939 = 0.02519;
+    public static double inPerTick3231 = 0.001979;
+    public static double lateralInPerTick3231 = 0.001979;
 
-    public static double ks2939 = 1.0967513649697667;
+    public static double ks3231 = 1.0967513649697667;
 
-    public static double kv2939 = 0.0042730455553834186;
+    public static double kv3231 = 0.0042730455553834186;
 
-    public static double ka2939 = .00067;
+    public static double ka3231 = .00067;
 
-    public static double trackWidth2939 = 1226.5643209432749;
+    public static double trackWidth3231 = 1226.5643209432749;
 
-    public static double axialGain2939 = 3;
+    public static double axialGain3231 = 3;
 
-    public static double axialVelGain2939 = 1.9;
+    public static double axialVelGain3231 = 1.9;
 
-    public static double headingGain2939 = 4.5;
+    public static double headingGain3231 = 4.5;
 
-    public static double headingVelGain2939 = .5;
+    public static double headingVelGain3231 = .5;
 
-    public static double lateralGain2939 = 1.3;
+    public static double lateralGain3231 = 1.3;
 
-    public static double lateralVelGain2939 = 0;
+    public static double lateralVelGain3231 = 0;
 
     public static class Params {
         // IMU orientation
@@ -111,14 +133,14 @@ public class Constants {
                 RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
 
         // drive model parameters
-        public double inPerTick = Constants.inPerTick2939;
-        public double lateralInPerTick = Constants.lateralInPerTick2939;
-        public double trackWidthTicks = Constants.trackWidth2939;
+        public double inPerTick = Constants.inPerTick3231;
+        public double lateralInPerTick = Constants.lateralInPerTick3231;
+        public double trackWidthTicks = Constants.trackWidth3231;
 
         // feedforward parameters (in tick units)
-        public double kS = Constants.ks2939;
-        public double kV = Constants.kv2939;
-        public double kA = ka2939;
+        public double kS = Constants.ks3231;
+        public double kV = Constants.kv3231;
+        public double kA = ka3231;
 
         // path profile parameters (in inches)
         public double maxWheelVel = 50;
@@ -130,13 +152,13 @@ public class Constants {
         public double maxAngAccel = Math.PI;
 
         // path controller gains
-        public double axialGain = axialGain2939;
-        public double lateralGain = lateralGain2939;
-        public double headingGain = headingGain2939; // shared with turn
+        public double axialGain = axialGain3231;
+        public double lateralGain = lateralGain3231;
+        public double headingGain = headingGain3231; // shared with turn
 
-        public double axialVelGain = axialVelGain2939;
-        public double lateralVelGain = lateralVelGain2939;
-        public double headingVelGain = headingVelGain2939; // shared with turn
+        public double axialVelGain = axialVelGain3231;
+        public double lateralVelGain = lateralVelGain3231;
+        public double headingVelGain = headingVelGain3231; // shared with turn
     }
 
 }

@@ -24,6 +24,10 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import android.util.Size;
+
+import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -31,6 +35,15 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
+
 
 /*
  * This file includes a teleop (driver-controlled) file for the goBILDA® StarterBot with Mecanum
@@ -47,20 +60,29 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "Mec BioBuzz StarterBot Teleop", group = "StarterBot")
+@TeleOp(name = "3231Teleop", group = "Teleop")
 //@Disabled
 public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
+    AprilTagProcessor tagProcessor;
+
     // Declare OpMode members.
-    private DcMotor leftFrontDrive = null;
-    private DcMotor leftBackDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor rightBackDrive = null;
-    private DcMotorEx shooter = null;
-    private DcMotor intake = null;
-    private CRServo leftIntakeServo = null;
-    private CRServo rightIntakeServo = null;
-    private CRServo windmillServo = null;
+    private DcMotor leftFrontDrive;
+    private DcMotor leftBackDrive;
+    private DcMotor rightFrontDrive;
+    private DcMotor rightBackDrive;
+    private DcMotorEx shooter;
+    private DcMotor intake;
+    //    private CRServo leftIntakeServo = null;
+    private CRServo rightIntakeServo;
+    private CRServo windmillServo;
+
+    public double pVal = 36.2;
+    public double fVal = 12.5;
+
+    AprilTagProcessor myAprilTagProcessor;
+
+    Follower follower;
 
 
     /*
@@ -73,8 +95,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      * in the launch() function to only run the windmill servo when the motor is spinning fast
      * enough to make a successful throw.
      */
-    public final int LAUNCHER_TARGET_VELOCITY = 1250; //2678 RPM
-    public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
+    public int LAUNCHER_TARGET_VELOCITY = 1190; //2678 RPM
+    public final int LAUNCHER_MIN_VELOCITY = 1150; //2571 RPM
 
 
     /*
@@ -90,11 +112,29 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     // Create a variable to set to the intake.
     double intakePower;
 
+    private VisionPortal visionPortal;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
+        follower = Constants.create(hardwareMap);
+//
+//        visionPortal = new VisionPortal.Builder()
+//                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+//                .setCameraResolution(new Size(640, 480))
+//                .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+//                .addProcessor(tagProcessor)
+//                .enableLiveView(true)
+//                .setAutoStartStreamOnBuild(true)
+//                .build();
+//
+//        tagProcessor = AprilTagProcessor.easyCreateWithDefaults();
+
+        myAprilTagProcessor = new AprilTagProcessor.Builder()
+                .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
+                .build();
 
         /*
          * Initialize the hardware variables. Note that the strings used here as parameters
@@ -108,8 +148,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         shooter = hardwareMap.get(DcMotorEx.class, "shooterMotor");
         windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
-        leftIntakeServo = hardwareMap.get(CRServo.class, "leftIntakeServo");
-//        rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
+//        leftIntakeServo = hardwareMap.get(CRServo.class, "leftIntakeServo");
+        rightIntakeServo = hardwareMap.get(CRServo.class, "rightIntakeServo");
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -118,10 +158,10 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90 Deg drives may require direction flips
          */
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD); // Both lefts same
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);  // Both lefts same
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);// Both rights same
+        rightBackDrive.setDirection(DcMotor.Direction.REVERSE); // Both rights same
 
         /*
          * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
@@ -144,21 +184,25 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(pVal
+                , 0, 0, 12.5));
 
         /*
          * set Feeders to an initial value to initialize the servo controller
          */
-        leftIntakeServo.setPower(0);
+//        leftIntakeServo.setPower(0);
         rightIntakeServo.setPower(0);
         windmillServo.setPower(0);
+
 
         /*
          * Much like our drivetrain motors, we set the right intake servo to reverse so that both
          * servos work to pull elements into the intake.
          */
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
         rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
-        windmillServo.setDirection(DcMotorSimple.Direction.REVERSE);
+        windmillServo.setDirection(DcMotorSimple.Direction.FORWARD);
+
 
         /*
          * Tell the driver that initialization is complete.
@@ -195,7 +239,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Note, moving the joystick forward on most gamepads results in a negative signal, so
          * we invert it before passing it to the function.
          */
-        mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        mecanumDrive(gamepad1.left_stick_y,
+                -gamepad1.left_stick_x,
+                -gamepad1.right_stick_x);
 
         /*
          * Set the intake power variable to equal the right trigger, minus the left trigger.
@@ -222,12 +268,41 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          */
 
         intake.setPower(intakePower);
-        leftIntakeServo.setPower(intakePower);
+//        leftIntakeServo.setPower(intakePower);
         rightIntakeServo.setPower(intakePower);
 
         /*
          * Show motor powers on the Driver Station via telemetry.
+         *
          */
+
+        for (AprilTagDetection tag : myAprilTagProcessor.getDetections()) {
+            if (tag instanceof AprilTagSingleDetection) {
+                telemetry.addData("Tag ID", ((AprilTagSingleDetection) tag).id);
+            } else if (tag instanceof AprilTagClusterDetection) {
+                telemetry.addData("Tag Cluster", ((AprilTagClusterDetection) tag).metadata.name);
+            }
+
+            if (tag.ftcPose == null) {
+                telemetry.addLine("AprilTag pose unavailable");
+                continue;
+            }
+            telemetry.addData("X", tag.ftcPose.x);
+            telemetry.addData("Y", tag.ftcPose.y);
+            telemetry.addData("Range", tag.ftcPose.range);
+            telemetry.addData("Bearing", tag.ftcPose.bearing);
+            telemetry.addData("Yaw", tag.ftcPose.yaw);
+
+        }
+
+        telemetry.update();
+
+        follower.update();
+        Pose pose = follower.pose();
+
+        telemetry.addData("x", pose.x());
+        telemetry.addData("y", pose.y());
+
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad2.left_trigger, gamepad2.right_trigger);
     }
@@ -237,6 +312,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     @Override
     public void stop() {
+        if (visionPortal != null) {
+            visionPortal.close();
+        }
     }
 
     void mecanumDrive(double forward, double strafe, double rotate) {
@@ -276,9 +354,57 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          */
         if (gamepad2.right_bumper) {
             shooter.setVelocity(LAUNCHER_TARGET_VELOCITY);
+
         } else {
             shooter.setVelocity(0);
         }
+
+        if (gamepad1.dpadDownWasPressed()) {
+            LAUNCHER_TARGET_VELOCITY += 5;
+        } else if (gamepad1.dpad_down) {
+            LAUNCHER_TARGET_VELOCITY -= 5;
+        }
+
+//        if (gamepad1.y) {
+//            pVal += 1;
+//        } else if (gamepad1.x) {
+//            pVal -= 1;
+//        }
+//
+//        if (gamepad1.b) {
+//            fVal += 1;
+//        } else if (gamepad1.a) {
+//            fVal -= 1;
+//        }
+
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+                new PIDFCoefficients(pVal, 0, 0, fVal));
+
+
+
+//        if (gamepad1.rightTriggerWasPressed()) {
+//            intakePower = .35;
+//        } else if (gamepad1.leftTriggerWasPressed()) {
+//            intakePower = -.35;
+//        }
+
+        if (gamepad1.right_trigger > .1) {
+            intakePower = .65;
+        } else if (gamepad1.left_trigger > .1){
+            intakePower = -1;
+        } else {
+            intakePower = 0;
+        }
+
+        if (gamepad1.bWasPressed()){
+            intakePower += .05;
+        } else if (gamepad1.aWasPressed()) {
+            intakePower -= .05;
+        }
+
+        intakePower = Math.max(-1.0, Math.min(1.0, intakePower));
+
+
 
         /*
          * Here we ask if the driver is currently pressing the right bumper, AND the launcher is
@@ -294,4 +420,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             windmillServo.setPower(0);
         }
     }
+
+
 }

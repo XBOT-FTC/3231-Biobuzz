@@ -255,7 +255,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * allow us to avoid setting the same motors/servos power more than once per loop. That can
          * create erratic behavior.
          */
-
+        intakePower = gamepad2.right_trigger - gamepad2.left_trigger;
 
         launch();
 
@@ -304,19 +304,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         telemetry.addData("y", pose.y());
 
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
-        telemetry.addData("Triggers", "left (%.2f, right (%.2f)", gamepad1.left_trigger, gamepad1.right_trigger);
-        telemetry.addData("Windmill: ", windmillServo.getPower());
-        telemetry.addData("ShooterPower: ", shooter.getPower());
-        telemetry.addData("CSR SERVO CLASS", windmillServo.getClass());
-        telemetry.addData("RightIntakePower", rightIntakeServo.getPower());
-        telemetry.addData("ShooterTargetPositionTolerance: ", shooter.getTargetPositionTolerance());
-        telemetry.addData("Target Velocity", LAUNCHER_TARGET_VELOCITY);
-        telemetry.addData("Actual Velocity", shooter.getVelocity());
-        telemetry.addData("Velocity Error", LAUNCHER_TARGET_VELOCITY - shooter.getVelocity());
-        telemetry.addData("P", pVal);
-        telemetry.addData("F", fVal);
-        telemetry.addData("Intake: ", intakePower);
-
+        telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad2.left_trigger, gamepad2.right_trigger);
     }
 
     /*
@@ -364,11 +352,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * holding down the right gamepad. If they are, then we want to start spinning up the launcher.
          * Otherwise, we start spinning the launcher down.
          */
-        if (gamepad1.left_trigger > 0.1) {
-            shooter.setVelocity(-500);
-            windmillServo.setPower(0);
-
-        } else if (gamepad1.xWasPressed()|| gamepad1.right_bumper) {
+        if (gamepad2.right_bumper) {
             shooter.setVelocity(LAUNCHER_TARGET_VELOCITY);
 
         } else {
@@ -429,17 +413,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * add some power to the intake power. This can sometimes help dislodge stuck elements from
          * inside the hopper.
          */
-
-        double actualVelocity = shooter.getVelocity();
-
-        double velocityError = Math.abs(
-                LAUNCHER_TARGET_VELOCITY - actualVelocity
-        );
-
-        boolean shooterReady = velocityError <= 30;
-
-        if ((gamepad1.right_bumper && shooterReady) || gamepad1.y) {
-            windmillServo.setPower(1.0);
+        if (gamepad2.right_bumper && shooter.getVelocity() > LAUNCHER_MIN_VELOCITY) {
+            windmillServo.setPower(1);
+            intakePower += 0.5;
         } else {
             windmillServo.setPower(0);
         }

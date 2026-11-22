@@ -304,7 +304,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         telemetry.addData("y", pose.y());
 
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
-        telemetry.addData("Triggers", "left (%.2f, right (%.2f)", gamepad1.left_trigger, gamepad1.right_trigger);
+        telemetry.addData("Triggers", "left (%.2f, right (%.2f)", gamepad2.left_trigger, gamepad2.right_trigger);
         telemetry.addData("Windmill: ", windmillServo.getPower());
         telemetry.addData("ShooterPower: ", shooter.getPower());
         telemetry.addData("CSR SERVO CLASS", windmillServo.getClass());
@@ -364,20 +364,20 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * holding down the right gamepad. If they are, then we want to start spinning up the launcher.
          * Otherwise, we start spinning the launcher down.
          */
-        if (gamepad1.left_trigger > 0.1) {
+        if (gamepad2.left_trigger > 0.1) {
             shooter.setVelocity(-500);
             windmillServo.setPower(0);
 
-        } else if (gamepad1.xWasPressed()|| gamepad1.right_bumper) {
+        } else if (gamepad2.xWasPressed()|| gamepad2.right_bumper) {
             shooter.setVelocity(LAUNCHER_TARGET_VELOCITY);
 
         } else {
             shooter.setVelocity(0);
         }
 
-        if (gamepad1.dpadDownWasPressed()) {
+        if (gamepad2.dpadUpWasPressed()) {
             LAUNCHER_TARGET_VELOCITY += 5;
-        } else if (gamepad1.dpad_down) {
+        } else if (gamepad2.dpadDownWasPressed()) {
             LAUNCHER_TARGET_VELOCITY -= 5;
         }
 
@@ -404,17 +404,17 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 //            intakePower = -.35;
 //        }
 
-        if (gamepad1.right_trigger > .1) {
+        if (gamepad2.right_trigger > .1) {
             intakePower = .65;
-        } else if (gamepad1.left_trigger > .1){
+        } else if (gamepad2.left_trigger > .1){
             intakePower = -1;
         } else {
             intakePower = 0;
         }
 
-        if (gamepad1.bWasPressed()){
+        if (gamepad2.bWasPressed()){
             intakePower += .05;
-        } else if (gamepad1.aWasPressed()) {
+        } else if (gamepad2.aWasPressed()) {
             intakePower -= .05;
         }
 
@@ -438,7 +438,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         boolean shooterReady = velocityError <= 30;
 
-        if ((gamepad1.right_bumper && shooterReady) || gamepad1.y) {
+        if ((gamepad2.right_bumper && shooterReady) || gamepad2.y) {
             windmillServo.setPower(1.0);
         } else {
             windmillServo.setPower(0);
